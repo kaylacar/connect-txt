@@ -20,7 +20,7 @@ Reviewer: [@mnot](https://github.com/mnot). 14-day window. None in the IANA regi
 ## Next
 
 - [ ] Get CONNECT-SPEC.md at a public URL (merge to main or publish to GitHub Pages)
-- [ ] Submit IANA registrations for `connect.txt`, `connect.json`, `connect-ledger.json` — fill in `[SPEC URL]` and open 3 issues
+- [x] Submit IANA registrations for `connect.txt`, `connect.json`, `connect-ledger.json` — filed #81, #82, #85 (Feb 28, 2026)
 - [ ] Add Connect spec to the ai-txt repo README and SPEC.md
 - [ ] Submit IETF Internet-Draft for Connect protocol (defensive publication / prior art)
 
