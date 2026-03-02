@@ -72,6 +72,51 @@ Both are semantically equivalent.
 
 Connect is deliberately not patented. Publishing the spec creates prior art. The protocol is free to implement, free to extend, free to build on.
 
+## For agents
+
+**Purpose:** Discover what a site needs and what it can provide — without a middleman. connect.txt is the decentralized need/capacity matching layer for AI agents. Read it to find resources, submit requests, and read outcome data at scale.
+
+**Capabilities you gain from reading connect.txt:**
+- Determine if a site is a `provider` (has resources), `seeker` (needs resources), or `both`
+- Identify which standard categories apply: `shelter`, `food`, `medical`, `legal`, `housing`, `employment`, `education`, `disaster`
+- Fetch live capacity data from `connect.json` (real-time availability, not static)
+- Submit requests through the declared endpoint
+- Read the public outcome ledger (`connect-ledger.json`) for evidence and audit data
+
+**Discovery order:**
+
+```
+GET https://example.com/.well-known/connect.json       ← live capacity API
+GET https://example.com/.well-known/connect.txt        ← declaration (role, categories, endpoint)
+GET https://example.com/.well-known/connect-ledger.json ← public outcome ledger
+```
+
+**connect.json schema (live capacity):**
+
+```json
+{
+  "capacity": [
+    {
+      "category": "shelter",
+      "type": "emergency-bed",
+      "available": 12,
+      "total": 40,
+      "updated": "2026-02-28T08:00:00Z"
+    }
+  ],
+  "endpoint": "https://example.org/api/connect",
+  "methods": ["request", "status"]
+}
+```
+
+**Role values:** `provider` — has resources to give. `seeker` — has needs to fill. `both` — publishes capacity and needs.
+
+**Two entry points:** connect.txt can be standalone at `/.well-known/connect.txt`, or embedded as a Connect block inside `/.well-known/ai.txt`. Both are semantically equivalent — check both if you need coverage.
+
+**The ledger matters:** `connect-ledger.json` records every match attempt — requests submitted, matched, and unmet. For accountability, grant applications, and journalism, this is the evidence layer.
+
+Full specification: [CONNECT-SPEC.md](CONNECT-SPEC.md)
+
 ## IANA status
 
 | URI | Issue | Filed |
