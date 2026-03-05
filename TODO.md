@@ -1,36 +1,22 @@
-# Machine Policy — Roadmap
+# Connect Roadmap
 
 ## Done
 
-- [x] Define standalone `connect.txt` format (added to index.html 2026-02-28)
-- [x] Write full Connect protocol spec — [CONNECT-SPEC.md](CONNECT-SPEC.md)
-- [x] Draft IANA registration requests for `connect.txt`, `connect.json`, `connect-ledger.json` — copy-paste ready in [FILINGS.md](FILINGS.md)
-
-## Pending review (filed, waiting on expert)
-
-- [ ] IANA `agents.txt` — [issue #72](https://github.com/protocol-registries/well-known-uris/issues/72) (filed 2026-02-20)
-- [ ] IANA `agents.json` — [issue #73](https://github.com/protocol-registries/well-known-uris/issues/73) (filed 2026-02-20)
-- [ ] IANA `agent.txt` — [issue #74](https://github.com/protocol-registries/well-known-uris/issues/74) (filed 2026-02-20)
-- [ ] IANA `agent.json` — [issue #75](https://github.com/protocol-registries/well-known-uris/issues/75) (filed 2026-02-20)
-- [ ] IANA `ai.txt` — [issue #76](https://github.com/protocol-registries/well-known-uris/issues/76) (filed 2026-02-22)
-- [ ] IANA `ai.json` — [issue #77](https://github.com/protocol-registries/well-known-uris/issues/77) (filed 2026-02-22)
-
-Reviewer: [@mnot](https://github.com/mnot). 14-day window. None in the IANA registry yet.
+- [x] Preserve the original repo and draft structure
+- [x] Reframe Connect around agent connection semantics
+- [x] Draft `README.md` with separate human and agent sections
+- [x] Draft revised `CONNECT-SPEC.md`
+- [x] Rewrite `FILINGS.md` to match the revised Connect semantics
 
 ## Next
 
-- [ ] Get CONNECT-SPEC.md at a public URL (merge to main or publish to GitHub Pages)
-- [x] Submit IANA registrations for `connect.txt`, `connect.json`, `connect-ledger.json` — filed #81, #82, #85 (Feb 28, 2026)
-- [ ] Add Connect spec to the ai-txt repo README and SPEC.md
-- [ ] Submit IETF Internet-Draft for Connect protocol (defensive publication / prior art)
+- [ ] Decide whether `connect.txt` and `connect.json` are the canonical well-known names
+- [ ] Add richer examples for bearer auth, OAuth, and session-required flows
+- [ ] Decide whether `ai.txt` should include a first-class Connect block
+- [ ] Publish the revised public spec before any further filing activity
+- [ ] Revisit any older Connect filing history so it clearly points matching semantics to `match.txt`
 
-## Build
+## Positioning
 
-- [ ] Build the `@ai-txt/connect` npm package
-- [ ] Build the aggregation/dashboard layer (stewardship — collects ledger data across all participating sites)
-- [ ] First real deployment with a crisis services organization
-
-## Reference
-
-- [FILINGS.md](FILINGS.md) — IP strategy, registration templates, filing order
-- [CONNECT-SPEC.md](CONNECT-SPEC.md) — full Connect protocol specification
+Connect is the machine-readable agent door for a site: how agents connect, authenticate, establish sessions, and use the declared surface correctly.
+It is separate from permissions, policy, matching, and verification.

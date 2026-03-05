@@ -1,141 +1,230 @@
 # connect.txt
 
-An open standard for declaring what a site needs and what it can provide.
+An open standard for telling agents how to connect to and use a website or service.
 
-The internet has no standard way for organizations to say "we need X" or "we have Y." connect.txt adds one. Place it at `/.well-known/connect.txt` and any agent, crawler, or human can discover your needs and capacity -- without a middleman.
+**The web has one door for humans and still lacks a clear door for agents.** `connect.txt` is that door: place it at `/.well-known/connect.txt` to declare how agents should connect, authenticate, negotiate sessions, respect rate limits, and call the supported interaction surface of a site.
 
-## How it works
+`connect.txt` is not a matching or needs/capacity protocol. It is the connection and usage layer for agent-facing web infrastructure.
 
-```
+---
+
+## Quick Start
+
+### Publish a Connect declaration
+
+```txt
 # /.well-known/connect.txt
 Spec-Version: 1.0
-Site-Name: Portland Emergency Shelter
-Site-URL: https://shelter.example.org
-Role: provider
-Categories: shelter, food
-Endpoint: https://shelter.example.org/.well-known/connect.json
-Ledger: public
+Site-Name: Example Store
+Site-URL: https://example.com
+Connect-Version: 1.0
+Base-URL: https://example.com
+Agents-URL: https://example.com/.well-known/agents.txt
+Endpoint: https://example.com/.well-known/connect.json
+Auth: bearer, none
+Session: optional
+Rate-Limit: 60/minute
 ```
 
-An agent reads this file, fetches `connect.json` for live capacity data, and can submit requests through the declared endpoint. A seeker publishes needs the same way. The protocol matches them.
+### Publish connection metadata
+
+```json
+{
+  "base_url": "https://example.com",
+  "capabilities_url": "https://example.com/.well-known/agents.json",
+  "auth": ["bearer", "none"],
+  "session": {
+    "mode": "optional",
+    "header": "X-Session-Token"
+  },
+  "rate_limit": {
+    "requests": 60,
+    "window": "minute"
+  },
+  "methods": ["GET", "POST"],
+  "content_types": ["application/json"],
+  "transport": ["https"]
+}
+```
+
+---
+
+## What it does
+
+`connect.txt` gives a site a machine-readable agent connection layer:
+
+- Declare where the agent-facing surface lives
+- Point to structured capability declarations
+- Declare authentication expectations
+- Declare session behavior
+- Declare rate limits and transport rules
+- Declare accepted methods and content types
+- Make connection semantics explicit before execution begins
+
+This reduces guesswork. Agents do not have to infer how to use a site from human pages, forms, or brittle scraping.
+
+---
+
+## Why this exists
+
+The current web is optimized for humans:
+
+- visual navigation
+- interactive forms
+- cookies and browser sessions
+- documentation written for people
+- undocumented assumptions about headers, methods, and flow
+
+Agents need something else:
+
+- an explicit connection surface
+- clear auth rules
+- session rules they can follow deterministically
+- content types and transport requirements
+- machine-readable guidance about where to start
+
+`agents.txt` tells an agent what it may do. `connect.txt` tells it how to connect and use the site correctly.
+
+---
+
+## For Humans
+
+Use `connect.txt` if you want to publish the operational rules an agent should follow when interacting with your site.
+
+This is useful for:
+
+- ecommerce sites
+- SaaS products
+- data APIs
+- portals with structured actions
+- internal systems being modernized for agents
+- any service that wants a clean agent entry point separate from the human interface
+
+If you are a site owner:
+
+- `agents.txt` is the permission and capability declaration
+- `connect.txt` is the technical connection and usage declaration
+- `agents-protocol` can implement the execution semantics behind both
+
+---
+
+## For Agents
+
+**Purpose:** discover the correct connection, auth, session, and transport rules for a site before attempting actions.
+
+**Capabilities:**
+- Discover the base URL for agent interaction
+- Locate the machine-readable capability document
+- Determine whether auth is required and which auth modes are supported
+- Determine whether session tokens are used and where they appear
+- Read rate limits before acting
+- Determine allowed methods and content types
+- Establish a reliable connection plan before calling site capabilities
+
+**Discovery order:**
+1. Check `/.well-known/connect.txt`
+2. Resolve the `Endpoint` field to fetch `connect.json`
+3. Resolve `Agents-URL` or `capabilities_url` to load the declared capability surface
+4. Follow auth, session, transport, and rate-limit rules before making requests
+
+**Parsing rules:**
+- Field names are case-insensitive
+- Unknown fields must be ignored
+- Duplicate fields: last value wins
+- `Endpoint` is authoritative for the live connection metadata document
+- `Auth` values are comma-separated in `connect.txt`
+
+**What Connect is not:**
+- not a permission model by itself
+- not a matching protocol
+- not a verification protocol
+- not an execution runtime
+- not a guarantee that a site will accept every request
+
+---
 
 ## The stack
 
 | File | What it does |
 |------|-------------|
-| `connect.txt` | Declares participation, role, and categories (text) |
-| `connect.json` | Live capacity and needs data (JSON API) |
-| `connect-ledger.json` | Public outcome ledger -- every match attempt, recorded |
+| `connect.txt` | Declares connection and usage metadata in text form |
+| `connect.json` | Declares live connection semantics in machine-readable form |
 
-The ledger is the point. "12 beds. 47 requests. 35 people with nowhere to go." is a screenshot, a news story, a grant application. The protocol generates the evidence the current system cannot.
+`connect.txt` may point to other files in the protocol family, especially `agents.txt` and `agents.json`.
 
-## Roles
+---
 
-| Role | Publishes |
-|------|-----------|
-| `provider` | Capacity (what's available) |
-| `seeker` | Needs (what's required) |
-| `both` | Capacity and needs |
+## Example use cases
 
-## Standard categories
+### Agent-enabled storefront
 
-`shelter`, `food`, `medical`, `legal`, `housing`, `employment`, `education`, `disaster`. Custom categories are allowed but standard ones improve interoperability.
+- `agents.txt` declares search, browse, detail, cart, and checkout capabilities
+- `connect.txt` declares bearer auth, optional sessions, rate limits, and JSON-only POST rules
+- an agent connects correctly without scraping the storefront UI
 
-## Two entry points
+### Internal operations portal
 
-Organizations can declare Connect participation two ways:
+- a city office exposes a controlled task surface for agents
+- `connect.txt` declares SSO-backed bearer auth and session headers
+- agents follow the same operational rules every time
 
-1. **Standalone `connect.txt`** at `/.well-known/connect.txt` -- for organizations that only want coordination
-2. **Connect block in `ai.txt`** at `/.well-known/ai.txt` -- for organizations that already declare AI policy
+### Modernization layer
 
-Both are semantically equivalent.
+- a legacy system keeps its human UI
+- a parallel agent-facing door is published via `connect.txt`
+- agent traffic becomes explicit instead of accidental
 
-## Live capacity example
+---
 
-```json
-{
-  "capacity": [
-    {
-      "category": "shelter",
-      "type": "emergency-bed",
-      "available": 12,
-      "total": 40,
-      "updated": "2026-02-28T08:00:00Z"
-    }
-  ],
-  "endpoint": "https://shelter.example.org/api/connect",
-  "methods": ["request", "status"]
-}
-```
+## Position in the protocol family
+
+`connect.txt` is one part of a broader machine-readable web stack:
+
+- [agents.txt](https://github.com/kaylacar/agents-txt): what agents can do on a site
+- [ai.txt](https://github.com/kaylacar/ai-txt): what AI policy applies
+- `connect.txt`: how agents connect and use a site
+- [verify.txt](https://github.com/kaylacar/verify-txt): how claims or outcomes can be independently verified
+- `match.txt`: how needs, capacity, and outcomes are published across organizations
+- `agents-protocol`: execution semantics for governed agent interaction
+
+This separation matters.
+
+- `agents.txt` is permission and capability discovery
+- `connect.txt` is connection and usage
+- `match.txt` is coordination state
+- `verify.txt` is verification
+- `ai.txt` is policy
+
+Do not overload one file with all of these jobs.
+
+---
 
 ## IP approach
 
-Connect is deliberately not patented. Publishing the spec creates prior art. The protocol is free to implement, free to extend, free to build on.
+Connect is deliberately not patented. Publishing the spec creates prior art. The protocol is free to implement, free to extend, and free to build on.
 
-## For agents
-
-**Purpose:** Discover what a site needs and what it can provide — without a middleman. connect.txt is the decentralized need/capacity matching layer for AI agents. Read it to find resources, submit requests, and read outcome data at scale.
-
-**Capabilities you gain from reading connect.txt:**
-- Determine if a site is a `provider` (has resources), `seeker` (needs resources), or `both`
-- Identify which standard categories apply: `shelter`, `food`, `medical`, `legal`, `housing`, `employment`, `education`, `disaster`
-- Fetch live capacity data from `connect.json` (real-time availability, not static)
-- Submit requests through the declared endpoint
-- Read the public outcome ledger (`connect-ledger.json`) for evidence and audit data
-
-**Discovery order:**
-
-```
-GET https://example.com/.well-known/connect.json       ← live capacity API
-GET https://example.com/.well-known/connect.txt        ← declaration (role, categories, endpoint)
-GET https://example.com/.well-known/connect-ledger.json ← public outcome ledger
-```
-
-**connect.json schema (live capacity):**
-
-```json
-{
-  "capacity": [
-    {
-      "category": "shelter",
-      "type": "emergency-bed",
-      "available": 12,
-      "total": 40,
-      "updated": "2026-02-28T08:00:00Z"
-    }
-  ],
-  "endpoint": "https://example.org/api/connect",
-  "methods": ["request", "status"]
-}
-```
-
-**Role values:** `provider` — has resources to give. `seeker` — has needs to fill. `both` — publishes capacity and needs.
-
-**Two entry points:** connect.txt can be standalone at `/.well-known/connect.txt`, or embedded as a Connect block inside `/.well-known/ai.txt`. Both are semantically equivalent — check both if you need coverage.
-
-**The ledger matters:** `connect-ledger.json` records every match attempt — requests submitted, matched, and unmet. For accountability, grant applications, and journalism, this is the evidence layer.
-
-Full specification: [CONNECT-SPEC.md](CONNECT-SPEC.md)
+---
 
 ## IANA status
 
-| URI | Issue | Filed |
-|-----|-------|-------|
-| `connect.txt` | [#81](https://github.com/protocol-registries/well-known-uris/issues/81) | Feb 28, 2026 |
-| `connect.json` | [#82](https://github.com/protocol-registries/well-known-uris/issues/82) | Feb 28, 2026 |
-| `connect-ledger.json` | [#85](https://github.com/protocol-registries/well-known-uris/issues/85) | Feb 28, 2026 |
+Older filing language and issue history existed for Connect under the broader matching interpretation. With Match now split into its own protocol, `connect.txt` and `connect.json` should be treated as draft names until the revised connection-focused spec is published and filing language is updated accordingly.
+
+---
 
 ## Specification
 
 Full protocol specification: [CONNECT-SPEC.md](CONNECT-SPEC.md)
 
-Covers: text and JSON formats, roles, categories, request flow, ledger schema, discovery order, security considerations, and IANA registration details.
+Covers:
+- text and JSON formats
+- auth and session declarations
+- rate limits and transport expectations
+- discovery order
+- security considerations
+- protocol-family positioning
+- draft filing guidance
 
-## Related
-
-- [agents.txt](https://github.com/kaylacar/agents-txt) -- what agents can do on a site
-- [ai.txt](https://github.com/kaylacar/ai-txt) -- what AI policy applies
-- [verify.txt](https://github.com/kaylacar/verify-txt) -- how to verify physical claims
+---
 
 ## License
 
